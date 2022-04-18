@@ -1,0 +1,64 @@
+pip install -r requirements.txt
+import requests
+url_get = requests.get("https://www.imdb.com/search/title/?release_date=2021-01-01,2021-12-31")
+url_get.content[1:500]
+from bs4 import BeautifulSoup 
+soup = BeautifulSoup(url_get.content,"html.parser")
+print(type(soup))
+print(soup.prettify()[:500])
+table = soup.find("div", attrs={"class":"lister list detail sub-list"})
+print(table.prettify()[500:5000])
+table.find_all("div", attrs={"class":"lister-item mode-advanced"})[:5]
+imdb = table.find_all("h3", attrs={"class":"lister-item-header"})
+row_length = len(imdb)
+row_length
+temp = [] #initiating a tuple
+for i in range(0, row_length):
+    try: 
+        judul = table.find_all('h3', attrs={'class':'lister-item-header'})[i].a.text.strip()
+    except Exception as e:
+        judul = "N/A"
+    try:
+        imdb_rating = table.find_all('div', attrs={"class": "inline-block ratings-imdb-rating"}[i].strong.text
+    except Exception as e:
+        imdb_rating = "N/A"
+    try:
+        metascore = table.find_all("span", attrs={"class": "metascore favorable"})[i].text.strip()
+    except Exception as e:
+        metascore = "N/A"
+    try:
+        votes = table.find_all("span", attrs={"name": "nv"})[i].text
+    except Exception as e:
+        votes = "N/A"
+    temp.append((judul, imdb_rating, metascore, votes))
+    
+temp
+import pandas as pd
+import numpy as np
+import seaborn as sb
+
+df = pd.DataFrame(temp, columns = ('Judul','imdb_rating','metascore','votes')).replace('N/A',np.NaN)
+df = df.set_index('Judul')
+
+df['votes'] = df['votes'].str.replace(",","")
+df['votes']=df['votes'].str.replace('.','')
+df['votes']=df['votes'].str.replace('$','')
+df['votes']=df['votes'].str.replace('M','0000')
+df[['imdb_rating','metascore','votes']]=df[['imdb_rating','metascore','votes']].astype('float64')
+import matplotlib.pyplot as plt
+import seaborn as sb
+colors = sb.color_palette('pastel')
+viz_rate = df['imdb_rating'].sort_values(ascending=True).head(7)
+viz_rate.plot.barh(color=colors[:7], title= 'Seven Highest Rating', xlabel= 'imdb_rating', ylabel = 'Judul', rot=0)
+colors1 = sb.color_palette('pastel')
+viz_meta = df['metascore'].sort_values(ascending=True).head(7)
+viz_meta.plot.barh(color=colors1[:7], title= 'Seven Highest MetaScore', xlabel= 'imdb_metascore', ylabel = 'Judul', rot=0)
+a = df['imdb_rating']
+b = df['metascore']
+
+plt.title("Rating and Metascore Correlation")
+plt.xlabel("Rating")
+plt.ylabel("Metascore")
+
+plt.scatter(a,b)
+plt.show()
