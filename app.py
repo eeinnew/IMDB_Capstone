@@ -45,9 +45,18 @@ for i in range(0, len(cont)):
         meta = favorable.text.strip()
 
     #Untuk mendapat votes    
-    votes = cont[i].find('p', attrs={'class':'sort-num_votes-visible'})
-    votes = votes.find('span', attrs={'name':'nv'}).text
-
+    votes = cont[i].find('p', attrs={'class':'sort-num_votes-visible'}).text
+    votes = votes.replace("\n","")
+    votes = votes.replace("Votes:","")
+    votes = votes.replace("| Gross:$858.37M","")
+    votes = votes.replace("| Gross:$53.80M","")
+    votes = votes.replace("| Gross:$164.87M","")
+    votes = votes.replace("| Gross:$121.63M","")
+    votes = votes.replace("| Gross:$160.87M","")
+    votes = votes.replace("| Gross:$224.54M","")
+    votes = votes.replace(",",".")
+        
+    
     temp.append((judul,rating,meta,votes))
     
 temp = temp[::-1]
